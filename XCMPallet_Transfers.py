@@ -17,11 +17,16 @@ from datetime import datetime
 # Select the network you want to scan
 
 # Polkadot
-url = "https://polkadot.webapi.subscan.io/api/scan/xcm/list"
-chain = "Polkadot"
-block_range = "14524371-14953024"
+# url = "https://polkadot.webapi.subscan.io/api/scan/xcm/list"
+# chain = "Polkadot"
+# block_range = "14524371-14953024"
+# origin_para_id = 0
+
+# Kusama
+url = "https://kusama.webapi.subscan.io/api/scan/xcm/list"
+chain = "Kusama"
+block_range = "16911800-17356300"
 origin_para_id = 0
-decimals = 10
 
 # ===================================
 
@@ -46,11 +51,13 @@ def get_amount_asset(instructions):
 
     return amounts
 
+
 def is_from_chain(chainId):
-    if(chainId == origin_para_id):
+    if (chainId == origin_para_id):
         return True
     else:
         return False
+
 
 with open("./XCM_Transfers/" + chain + "_XCM_transfer.csv", "w") as f:
     f.write("")
@@ -66,28 +73,29 @@ with open("./XCM_Transfers/" + chain + "_XCM_transfer.csv", "r") as f:
 
 print("Getting XCM Transfer data from " + chain + " Network...")
 
-for i in range(3):
+for i in range(15):
     print("Fetching XCM transfers from page " + str(page_number))
     response = requests.post(url, headers=headers, json={
-        "row":100,
+        "row": 100,
         "page": page_number,
-        "address":"",
-        "message_type":"transfer"
+        "address": "",
+        "message_type": "transfer"
     })
 
     # Check if response is valid
     if response.status_code == 200:
         data = response.json()
-        for transfer in data["data"]["list"]:    
-          transfers.append(transfer)
+        for transfer in data["data"]["list"]:
+            transfers.append(transfer)
     else:
-        print("Error: " + str(response.status_code) + " on Page " + str(page_number))
+        print("Error: " + str(response.status_code) +
+              " on Page " + str(page_number))
         break
-    
+
     page_number += 1
 
 for transfer in transfers:
-    
+
     assets = []
 
     for asset in transfer["assets"]:
@@ -96,29 +104,27 @@ for transfer in transfers:
         if (("decimals" not in asset) or ("symbol" not in asset)):
             assets.append(str(amount) + " Unknown")
             continue
-        amount = round(int(asset["amount"]) / (10 ** int(asset["decimals"])), 5)
+        amount = round(int(asset["amount"]) /
+                       (10 ** int(asset["decimals"])), 5)
         assets.append(str(amount) + " " + str(asset["symbol"]))
 
     assetsInText = ", ".join(assets)
 
-    with open("./XCM_Transfers/" + chain + "_XCM_transfer.csv", "w") as f:
-      f.write(str(transfer["message_hash"]) +
-                    ", " + str(transfer["extrinsic_index"]) +
-                    ", " + str(transfer["from_account_id"]) +
-                    ", " + str(transfer["origin_para_id"]) +
-                    ", " + str(transfer["to_account_id"]) +
-                    ", " + str(transfer["dest_para_id"]) +
-                    ", " + str(is_from_chain(transfer["origin_para_id"])) +
-                    ", " + str(transfer["protocol"]) +
-                    ", " + str(transfer["unique_id"]) +
-                    ", " + str(transfer["origin_block_timestamp"]) +
-                    ", " + assetsInText +
-                    "\n")
-      f.close()
+    with open("./XCM_Transfers/" + chain + "_XCM_transfer.csv", "a") as f:
+        f.write(str(transfer["message_hash"]) +
+                ", " + str(transfer["extrinsic_index"]) +
+                ", " + str(transfer["from_account_id"]) +
+                ", " + str(transfer["origin_para_id"]) +
+                ", " + str(transfer["to_account_id"]) +
+                ", " + str(transfer["dest_para_id"]) +
+                ", " + str(is_from_chain(transfer["origin_para_id"])) +
+                ", " + str(transfer["protocol"]) +
+                ", " + str(transfer["unique_id"]) +
+                ", " + str(transfer["origin_block_timestamp"]) +
+                ", " + assetsInText +
+                "\n")
+        f.close()
 
     # print how many extrinsics have been processed
     print("[Extrinsic_Data] " + str(transfers.index(transfer) + 1) +
-          " of " + str(len(transfers)))   
-  
-
-
+          " of " + str(len(transfers)))

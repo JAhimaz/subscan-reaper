@@ -5,11 +5,11 @@ from datetime import datetime
 # Select the network you want to scan
 
 # Polkadot
-# url = "https://polkadot.webapi.subscan.io/api/v2/scan/extrinsics"
-# extrinsic_url = "https://polkadot.webapi.subscan.io/api/scan/extrinsic"
-# chain = "Polkadot"
-# block_range = ""
-# decimals = 10
+url = "https://polkadot.webapi.subscan.io/api/v2/scan/extrinsics"
+extrinsic_url = "https://polkadot.webapi.subscan.io/api/scan/extrinsic"
+chain = "Polkadot"
+block_range = "14524371-14964096"
+decimals = 10
 
 # Kusama
 # url = "https://kusama.webapi.subscan.io/api/v2/scan/extrinsics"
@@ -115,15 +115,15 @@ number_of_pages = 0
 extrinsic_indexes = []
 
 # create an empty file to write the data to
-with open("./Balance_Transfers/" + chain + "_balances_transfer.csv", "w") as f:
+with open("./Democracy_Vote/" + chain + "_democracy_vote.csv", "w") as f:
     f.write("")
     f.close()
 
 # if the file is not empty, clear it
-with open("./Balance_Transfers/" + chain + "_balances_transfer.csv", "r") as f:
+with open("./Democracy_Vote/" + chain + "_democracy_vote.csv", "r") as f:
     if f.read() != "":
         f.close()
-        with open("./Balance_Transfers/" + chain + "_balances_transfer.csv", "w") as f:
+        with open("./Democracy_Vote/" + chain + "_democracy_vote.csv", "w") as f:
             f.write("")
             f.close()
 
@@ -138,8 +138,8 @@ for i in range(15):
         "page": page_number,
         "signed": "signed",
         "address": "",
-        "module": "balances",
-        "call": "transfer_keep_alive",
+        "module": "democracy",
+        "call": "vote",
         "success": True,
         "block_range": block_range
     })
@@ -178,13 +178,13 @@ for extrinsic_index in extrinsic_indexes:
     if extrinsic_response.status_code == 200:
         extrinsic_data = extrinsic_response.json()
 
-        # open balances_transfer.csv and append the data to it in a csv format
-        with open("./Balance_Transfers/" + chain + "_balances_transfer.csv", "a") as f:
+        # open democracy_vote.csv and append the data to it in a csv format
+        with open("./Democracy_Vote/" + chain + "_democracy_vote.csv", "a") as f:
             f.write(str(extrinsic_index["id"]) +
                     ", " + str(extrinsic_data["data"]["account_id"]) +
                     ", " + str(extrinsic_data["data"]["extrinsic_hash"]) +
                     ", " + str(extrinsic_data["data"]["block_num"]) +
-                    ", " + str(round(int(extrinsic_data["data"]["params"][1]["value"]) / (10 ** decimals), 5)) +
+                    ", " + "0" +
                     ", " + datetime.fromtimestamp(int(extrinsic_data["data"]["block_timestamp"])).strftime('%Y-%m-%d %H:%M:%S') +
                     ", " + str(extrinsic_data["data"]["call_module"]) +
                     ", " + str(extrinsic_data["data"]["call_module_function"]) +
