@@ -110,8 +110,16 @@ for transfer in transfers:
 
     assetsInText = ", ".join(assets)
 
+    dateTime = datetime.fromtimestamp(
+        int(transfer["origin_block_timestamp"])).strftime('%Y-%m-%d %H:%M:%S')
+
+    date = dateTime.split(" ")[0]
+    time = dateTime.split(" ")[1]
+
     with open("./XCM_Transfers/" + chain + "_XCM_transfer.csv", "a") as f:
-        f.write(str(transfer["message_hash"]) +
+        f.write(date +
+                ", " + time +
+                ", " + str(transfer["message_hash"]) +
                 ", " + str(transfer["extrinsic_index"]) +
                 ", " + str(transfer["from_account_id"]) +
                 ", " + str(transfer["origin_para_id"]) +
@@ -120,7 +128,6 @@ for transfer in transfers:
                 ", " + str(is_from_chain(transfer["origin_para_id"])) +
                 ", " + str(transfer["protocol"]) +
                 ", " + str(transfer["unique_id"]) +
-                ", " + str(transfer["origin_block_timestamp"]) +
                 ", " + assetsInText +
                 "\n")
         f.close()
