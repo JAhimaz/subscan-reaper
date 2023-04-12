@@ -1,29 +1,39 @@
 import requests
 import time
-from datetime import datetime
+from datetime import datetime, date
+
+# module_call = "transfer_keep_alive"
+module_call = "transfer"
 
 # Select the network you want to scan
 
 # Polkadot
-url = "https://polkadot.webapi.subscan.io/api/v2/scan/extrinsics"
-extrinsic_url = "https://polkadot.webapi.subscan.io/api/scan/extrinsic"
-chain = "Polkadot"
-block_ranges = ["15036043-15037035", "15021645-15036043",
-                "15007248-15021645", "14992873-15007248",
-                "14978480-14992873", "14964096-14978480",
-                "14949703-14964096", "14935309-14949703",
-                "14920911-14935309", "14906514-14920911",
-                "14892125-14906514", "14877737-14892125",
-                "14863351-14877737", "14848961-14863351",
-                "14834575-14848961"]
-decimals = 10
+# url = "https://polkadot.webapi.subscan.io/api/v2/scan/extrinsics"
+# extrinsic_url = "https://polkadot.webapi.subscan.io/api/scan/extrinsic"
+# chain = "Polkadot"
+# block_ranges = ["15036043-15050439", "15021645-15036043",
+#                 "15007248-15021645", "14992873-15007248",
+#                 "14978480-14992873", "14964096-14978480",
+#                 "14949703-14964096", "14935309-14949703",
+#                 "14920911-14935309", "14906514-14920911",
+#                 "14892125-14906514", "14877737-14892125",
+#                 "14863351-14877737", "14848961-14863351",
+#                 "14834575-14848961"]
+# decimals = 10
 
 # Kusama
-# url = "https://kusama.webapi.subscan.io/api/v2/scan/extrinsics"
-# extrinsic_url = "https://kusama.webapi.subscan.io/api/scan/extrinsic"
-# chain = "Kusama"
-# block_range = ""
-# decimals = 12
+url = "https://kusama.webapi.subscan.io/api/v2/scan/extrinsics"
+extrinsic_url = "https://kusama.webapi.subscan.io/api/scan/extrinsic"
+chain = "Kusama"
+block_ranges = ["17427957-17442278", "17413641-17427957",
+                "17399311-17413641", "17384985-17399311",
+                "17370661-17384985", "17356300-17370661",
+                "17341969-17356300", "17327662-17341969",
+                "17313333-17327662", "17299041-17313333",
+                "17284755-17299041", "17270511-17284755",
+                "17256217-17270511", "17241927-17256217",
+                "17227647-17241927"]
+decimals = 12
 
 # Acala
 # url = "https://acala.webapi.subscan.io/api/v2/scan/extrinsics"
@@ -121,48 +131,54 @@ number_of_pages = 0
 extrinsic_indexes = []
 
 # create an empty file to write the data to
-with open("./Balance_Transfers/" + chain + "_balances_transfer.csv", "w") as f:
+with open("./Balance_Transfers/" + chain + "_balances_" + module_call + ".csv", "w") as f:
     f.write("")
     f.close()
 
 # if the file is not empty, clear it
-with open("./Balance_Transfers/" + chain + "_balances_transfer.csv", "r") as f:
+with open("./Balance_Transfers/" + chain + "_balances_" + module_call + ".csv", "r") as f:
     if f.read() != "":
         f.close()
-        with open("./Balance_Transfers/" + chain + "_balances_transfer.csv", "w") as f:
+        with open("./Balance_Transfers/" + chain + "_balances_" + module_call + ".csv", "w") as f:
             f.write("")
             f.close()
+
+# create an empty file to write the data to
+with open("./Temp/" + chain + "_" + module_call + "_temp_extrinsic_ids_" + date.today().strftime("%d_%m_%Y") + ".csv", "w") as f:
+    f.write("=====" + datetime.now().strftime("%H:%M:%S") + "=====" + "\n")
+    f.close()
 
 # create an empty file to write the data to for total amount per day
 
-with open("./Balance_Transfers/" + chain + "_balances_transfer_total_per_day.csv", "w") as f:
+with open("./Balance_Transfers/" + chain + "_balances_" + module_call + "_total_per_day.csv", "w") as f:
     f.write("")
     f.close()
 
 # if the file is not empty, clear it
-with open("./Balance_Transfers/" + chain + "_balances_transfer_total_per_day.csv", "r") as f:
+with open("./Balance_Transfers/" + chain + "_balances_" + module_call + "_total_per_day.csv", "r") as f:
     if f.read() != "":
         f.close()
-        with open("./Balance_Transfers/" + chain + "_balances_transfer_total_per_day.csv", "w") as f:
+        with open("./Balance_Transfers/" + chain + "_balances_" + module_call + "_total_per_day.csv", "w") as f:
             f.write("")
             f.close()
 
 
-print("Getting Balances Transfer Data from " + chain + " Network...")
+print("Getting Balances " + module_call +
+      " Data from " + chain + " Network...")
 
 for block_range in block_ranges:
     print("Getting data for block range: " + block_range)
     total_per_day = 0  # reset total per day
     page_number = 0
 
-    for x in range(99):
+    for x in range(999):
         response = requests.post(url, headers=headers, json={
             "row": 100,
             "page": page_number,
             "signed": "signed",
             "address": "",
             "module": "balances",
-            "call": "transfer",
+            "call": module_call,
             "success": True,
             "block_range": block_range
         })
@@ -183,6 +199,10 @@ for block_range in block_ranges:
                         "id": extrinsic["extrinsic_index"],
                     })
 
+                    with open("./Temp/" + chain + "_" + module_call + "_temp_extrinsic_ids_" + date.today().strftime("%d_%m_%Y") + ".csv", "a") as f:
+                        f.write(str(extrinsic["extrinsic_index"]) + "\n")
+                        f.close()
+
             total_per_day += len(data["data"]["extrinsics"])
         else:
             print("Error: " + str(response.status_code))
@@ -190,16 +210,18 @@ for block_range in block_ranges:
         # Increment the page number
         print("[" + block_range + "] Page " + str(page_number) + " completed.")
         page_number += 1
-        time.sleep(1)
+        # time.sleep(1)
 
     # open balances_transfer_total_per_day.csv and append the data to it in a csv format
-    with open("./Balance_Transfers/" + chain + "_balances_transfer_total_per_day.csv", "a") as f:
+    with open("./Balance_Transfers/" + chain + "_balances_" + module_call + "_total_per_day.csv", "a") as f:
         f.write(str(total_per_day) +
                 "," + block_range.split("-")[0] +
                 "," + block_range.split("-")[1] +
                 "\n")
 
 for extrinsic_index in extrinsic_indexes:
+    print("[Extrinsic_Data " + str(extrinsic_index["id"]) + "] " + str(extrinsic_indexes.index(extrinsic_index) + 1) +
+          " of " + str(len(extrinsic_indexes)))
     extrinsic_response = requests.post(extrinsic_url, headers=headers, json={
         "extrinsic_index": str(extrinsic_index["id"]),
         "events_limit": 10,
@@ -215,16 +237,15 @@ for extrinsic_index in extrinsic_indexes:
         time = dateTime.split(" ")[1]
 
         # open balances_transfer.csv and append the data to it in a csv format
-        with open("./Balance_Transfers/" + chain + "_balances_transfer.csv", "a") as f:
+        with open("./Balance_Transfers/" + chain + "_balances_" + module_call + ".csv", "a") as f:
             f.write(date +
                     ", " + time +
                     ", " + str(extrinsic_index["id"]) +
                     ", " + str(extrinsic_data["data"]["block_num"]) +
                     ", " + str(extrinsic_data["data"]["extrinsic_hash"]) +
-                    ", " + str(extrinsic_data["data"]["transfer"]["from"]) +
-                    ", " + str(extrinsic_data["data"]["transfer"]["to"]) +
-                    ", " + str(round(int(extrinsic_data["data"]["transfer"]["amount"]) / (10 ** decimals), 5)) +
-                    ", " + str(extrinsic_data["data"]["transfer"]["asset_symbol"]) +
+                    ", " + str(extrinsic_data["data"]["account_id"]) +
+                    ", " + str(extrinsic_data["data"]["params"][0]["value"]["Id"]) +
+                    ", " + str(round(float(extrinsic_data["data"]["params"][1]["value"]) / (10 ** decimals), 5)) +
                     ", " + str(extrinsic_data["data"]["call_module"]) +
                     ", " + str(extrinsic_data["data"]["call_module_function"]) +
                     "\n")
@@ -233,5 +254,3 @@ for extrinsic_index in extrinsic_indexes:
         print("Error: " + str(extrinsic_response.status_code) +
               " " + str(extrinsic_index["id"]))
     # print how many extrinsics have been processed
-    print("[Extrinsic_Data] " + str(extrinsic_indexes.index(extrinsic_index) + 1) +
-          " of " + str(len(extrinsic_indexes)))
